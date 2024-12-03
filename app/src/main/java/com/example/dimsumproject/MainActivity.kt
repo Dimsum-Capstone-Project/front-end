@@ -1,47 +1,36 @@
 package com.example.dimsumproject
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.dimsumproject.ui.theme.DimsumProjectTheme
+import androidx.appcompat.app.AppCompatActivity
+import com.example.dimsumproject.databinding.ActivityMainBinding
+import com.example.dimsumproject.ui.login.LoginActivity
+import com.example.dimsumproject.ui.register.Register1Activity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            DimsumProjectTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setupActions()
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    private fun setupActions() {
+        binding.btnLogin.setOnClickListener {
+            // Menggunakan path yang benar ke LoginActivity dalam package ui.login
+//            startActivity(Intent(this, LoginActivity::class.java))
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DimsumProjectTheme {
-        Greeting("Android")
+        }
+
+        binding.btnSignup.setOnClickListener {
+            // Pastikan path Register1Activity sesuai dengan structure folder Anda
+            startActivity(Intent(this, Register1Activity::class.java))
+
+        }
     }
 }

@@ -3,8 +3,7 @@ package com.example.dimsumproject.data.api
 import com.google.gson.annotations.SerializedName
 
 data class RegisterResponse(
-        @field:SerializedName("error")
-        val error: Boolean,
-        @field:SerializedName("Registration Successful")
-        val message: String
-    )
+    @SerializedName("message") val message: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("username") val username: String
+)

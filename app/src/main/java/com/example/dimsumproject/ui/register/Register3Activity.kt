@@ -16,7 +16,6 @@ import com.example.dimsumproject.MainActivity
 import com.example.dimsumproject.Utils
 import com.example.dimsumproject.data.api.ApiConfig
 import com.example.dimsumproject.data.api.RegisterResponse
-import com.example.dimsumproject.data.local.UserPreferences
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -29,7 +28,6 @@ import java.io.FileOutputStream
 
 class Register3Activity : AppCompatActivity() {
     private lateinit var binding: ActivityRegister3Binding
-    private lateinit var userPreferences: UserPreferences
     private var palmImageUri: Uri? = null
     private var currentProfileImageUri: Uri? = null
     private lateinit var utils: Utils
@@ -56,7 +54,6 @@ class Register3Activity : AppCompatActivity() {
         binding = ActivityRegister3Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        userPreferences = UserPreferences(this)
         utils = Utils(applicationContext)
 
         val username = intent.getStringExtra("username")
@@ -71,16 +68,6 @@ class Register3Activity : AppCompatActivity() {
 
         binding.registerButton.setOnClickListener {
             if (validateInputs()) {
-                userPreferences.saveUserProfile(
-                    fullname = binding.fullnameEditText.text.toString(),
-                    job = binding.jobEditText.text.toString(),
-                    company = binding.companyEditText.text.toString(),
-                    instagram = binding.instagramEditText.text.toString(),
-                    linkedin = binding.linkedinEditText.text.toString(),
-                    whatsapp = binding.whatsappEditText.text.toString(),
-                    profileImageUri = currentProfileImageUri
-                )
-
                 registerUser(username, email, password)
             }
         }
@@ -138,7 +125,6 @@ class Register3Activity : AppCompatActivity() {
                 ExifInterface.ORIENTATION_UNDEFINED
             )
 
-            // Decode gambar untuk mendapatkan dimensi asli
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
             BitmapFactory.decodeFile(file.path, options)
@@ -146,19 +132,15 @@ class Register3Activity : AppCompatActivity() {
             val originalWidth = options.outWidth
             val originalHeight = options.outHeight
             val targetWidth = 1280
-            val targetHeight: Int
-
-            // Jika gambar portrait (tinggi > lebar)
-            if (originalHeight > originalWidth) {
-                targetHeight = (originalHeight.toFloat() * (targetWidth.toFloat() / originalWidth.toFloat())).toInt()
+            val targetHeight = if (originalHeight > originalWidth) {
+                (originalHeight.toFloat() * (targetWidth.toFloat() / originalWidth.toFloat())).toInt()
             } else {
-                targetHeight = (originalHeight.toFloat() * (targetWidth.toFloat() / originalWidth.toFloat())).toInt()
+                (originalHeight.toFloat() * (targetWidth.toFloat() / originalWidth.toFloat())).toInt()
             }
 
             options.inJustDecodeBounds = false
             val bitmap = BitmapFactory.decodeFile(file.path)
             val resizedBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
-
 
             val resizedFile = File.createTempFile("resized_", ".jpg", cacheDir)
             FileOutputStream(resizedFile).use { out ->
@@ -242,7 +224,6 @@ class Register3Activity : AppCompatActivity() {
                 }
             }
 
-            // Deteksi dimensi gambar
             val options = BitmapFactory.Options()
             options.inJustDecodeBounds = true
             BitmapFactory.decodeFile(tempFile.path, options)

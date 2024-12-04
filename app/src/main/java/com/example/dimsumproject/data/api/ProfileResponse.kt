@@ -1,10 +1,10 @@
 package com.example.dimsumproject.data.api
 
-import com.google.gson.annotations.SerializedName
-
 data class ProfileResponse(
-    @field:SerializedName("error")
-    val error: Boolean,
-    @field:SerializedName("message")
-    val message: String
+    val email: String,
+    val username: String,
+    val bio: String?,
+    val company: String?,
+    val job_title: String?,
+    val profile_picture: String?
 )

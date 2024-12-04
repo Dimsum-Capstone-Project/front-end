@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="@color/white"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/ivContactIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            tools:src="@drawable/instagram" />
+
+        <TextView
+            android:id="@+id/tvContactType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/teal_700"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Instagram" />
+
+        <TextView
+            android:id="@+id/tvContactValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/teal_700"
+            android:textSize="14sp"
+            tools:text="@username" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

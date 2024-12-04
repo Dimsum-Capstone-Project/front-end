@@ -31,5 +31,12 @@
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
+    <string name="error_message" />
+    <string name="title_registrationError">Oh no!</string>
+    <string name="try_again">Try Again</string>
+    <string name="title_registrationSuccess">You did it!</string>
+    <string name="text_registrationSuccess">Now log in to your account</string>
+    <string name="login">Log in</string>
+    <string name="bio">Bio</string>
 
 </resources>

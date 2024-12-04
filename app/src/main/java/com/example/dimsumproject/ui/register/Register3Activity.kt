@@ -1,21 +1,30 @@
 package com.example.dimsumproject.ui.register
 
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dimsumproject.databinding.ActivityRegister3Binding
-import com.example.dimsumproject.MainActivity
 import com.example.dimsumproject.Utils
 import com.example.dimsumproject.data.api.ApiConfig
+import com.example.dimsumproject.data.api.ProfileResponse
 import com.example.dimsumproject.data.api.RegisterResponse
+import com.example.dimsumproject.databinding.DialogRegistrationErrorBinding
+import com.example.dimsumproject.databinding.DialogRegistrationSuccessBinding
+import com.example.dimsumproject.ui.login.LoginActivity
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -62,6 +71,13 @@ class Register3Activity : AppCompatActivity() {
         val palmImageUriString = intent.getStringExtra("palmImageUri")
         palmImageUri = palmImageUriString?.let { Uri.parse(it) }
 
+
+        binding.fullnameEditText.setText(intent.getStringExtra("fullname"))
+        binding.bioEditText.setText(intent.getStringExtra("bio"))
+        binding.jobEditText.setText(intent.getStringExtra("job"))
+        binding.companyEditText.setText(intent.getStringExtra("company"))
+
+
         binding.changeProfileButton.setOnClickListener {
             showImagePickerDialog()
         }
@@ -104,6 +120,10 @@ class Register3Activity : AppCompatActivity() {
     private fun validateInputs(): Boolean {
         if (binding.fullnameEditText.text.toString().isEmpty()) {
             showToast("Please enter your full name")
+            return false
+        }
+        if (binding.bioEditText.text.toString().isEmpty()) {
+            showToast("Please enter your bio")
             return false
         }
         if (binding.jobEditText.text.toString().isEmpty()) {
@@ -172,7 +192,6 @@ class Register3Activity : AppCompatActivity() {
         val emailBody = email.toRequestBody("text/plain".toMediaTypeOrNull())
         val usernameBody = username.toRequestBody("text/plain".toMediaTypeOrNull())
         val passwordBody = password.toRequestBody("text/plain".toMediaTypeOrNull())
-
         val palmImageFile = getFileFromURI(palmImageUri!!)
         if (palmImageFile == null || !palmImageFile.exists()) {
             showToast("Palm image file not found")
@@ -182,7 +201,6 @@ class Register3Activity : AppCompatActivity() {
         Log.d("ImageDebug", "File size before sending: ${palmImageFile.length()} bytes")
 
         val resizedFile = resizeImage(palmImageFile)
-
         val requestFilePalm = resizedFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val palmImagePart = MultipartBody.Part.createFormData("palm_image", resizedFile.name, requestFilePalm)
 
@@ -197,19 +215,97 @@ class Register3Activity : AppCompatActivity() {
                 response: Response<RegisterResponse>
             ) {
                 if (response.isSuccessful) {
-                    showToast("Registration successful!")
-                    startActivity(Intent(this@Register3Activity, MainActivity::class.java))
-                    finishAffinity()
+                    showSuccessDialog()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("RegisterError", "Error Body: $errorBody")
-                    showToast("Registration failed: ${response.message()}")
+
+                    // Parse error message and determine error type
+                    val errorMessage = when {
+                        errorBody?.contains("palm image") == true -> {
+                            "Your palm image couldn't be processed. Please try taking a new photo."
+                        }
+                        errorBody?.contains("email format") == true -> {
+                            "Please check your email format and try again."
+                        }
+                        errorBody?.contains("already exists") == true -> {
+                            "This email is already registered. Please use a different email."
+                        }
+                        else -> {
+                            "Something went wrong. Please try again."
+                        }
+                    }
+
+                    // Determine error type for navigation
+                    val errorType = when {
+                        errorBody?.contains("palm image") == true -> ErrorType.PALM_IMAGE
+                        else -> ErrorType.REGISTRATION_FORM
+                    }
+                    showErrorDialog(errorMessage, errorType)
                 }
             }
 
             override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
                 Log.e("RegisterError", "Error: ${t.message}", t)
-                showToast("Error: ${t.message}")
+                showErrorDialog(
+                    "Connection error. Please check your internet connection and try again.",
+                    ErrorType.REGISTRATION_FORM
+                )
+            }
+        })
+    }
+
+    private fun editUserProfile() {
+        val nameBody = binding.fullnameEditText.text.toString()
+            .toRequestBody("text/plain".toMediaTypeOrNull())
+        val bioBody = binding.bioEditText.text.toString()
+            .toRequestBody("text/plain".toMediaTypeOrNull())
+        val jobTitleBody = binding.jobEditText.text.toString()
+            .toRequestBody("text/plain".toMediaTypeOrNull())
+        val companyBody = binding.companyEditText.text.toString()
+            .toRequestBody("text/plain".toMediaTypeOrNull())
+
+        val profilePicturePart = currentProfileImageUri?.let { uri ->
+            val file = getFileFromURI(uri)
+            val requestFile = file?.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("profile_picture", file?.name ?: "", requestFile!!)
+        }
+
+        if (profilePicturePart == null) {
+            showToast("Profile picture is required")
+            return
+        }
+
+        ApiConfig.getApiService().editProfile(
+            nameBody,
+            bioBody,
+            jobTitleBody,
+            companyBody,
+            profilePicturePart,
+            "Bearer token disini"
+        ).enqueue(object : Callback<ProfileResponse> {
+            override fun onResponse(
+                call: Call<ProfileResponse>,
+                response: Response<ProfileResponse>
+            ) {
+                if (response.isSuccessful) {
+                    showSuccessDialog()
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("ProfileError", "Error Body: $errorBody")
+                    showErrorDialog(
+                        "Failed to update profile. Please try again.",
+                        ErrorType.REGISTRATION_FORM
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ProfileResponse>, t: Throwable) {
+                Log.e("ProfileError", "Error: ${t.message}", t)
+                showErrorDialog(
+                    "Connection error. Please check your internet connection and try again.",
+                    ErrorType.REGISTRATION_FORM
+                )
             }
         })
     }
@@ -242,5 +338,80 @@ class Register3Activity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showSuccessDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        val bindingDialog = DialogRegistrationSuccessBinding.inflate(layoutInflater)
+        dialog.setContentView(bindingDialog.root)
+
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.apply {
+            setLayout(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            setGravity(Gravity.CENTER)
+        }
+
+        bindingDialog.btnLogin.setOnClickListener {
+            dialog.dismiss()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finishAffinity()
+        }
+
+        dialog.setCancelable(false)
+        dialog.show()
+    }
+
+    private fun showErrorDialog(errorMessage: String, errorType: ErrorType) {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+
+        val bindingDialog = DialogRegistrationErrorBinding.inflate(layoutInflater)
+        dialog.setContentView(bindingDialog.root)
+
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setLayout(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            setGravity(Gravity.CENTER)
+        }
+
+        bindingDialog.tvMessage.text = errorMessage
+        bindingDialog.btnTryAgain.setOnClickListener {
+            dialog.dismiss()
+            when (errorType) {
+                ErrorType.PALM_IMAGE -> {
+                    val intent = Intent(this, Register2Activity::class.java)
+                    intent.putExtra("username", getIntent().getStringExtra("username"))
+                    intent.putExtra("email", getIntent().getStringExtra("email"))
+                    intent.putExtra("password", getIntent().getStringExtra("password"))
+                    intent.putExtra("fullname", binding.fullnameEditText.text.toString())
+                    intent.putExtra("bio", binding.bioEditText.text.toString())
+                    intent.putExtra("job", binding.jobEditText.text.toString())
+                    intent.putExtra("company", binding.companyEditText.text.toString())
+
+
+                    startActivity(intent)
+                    finish()
+                }
+                ErrorType.REGISTRATION_FORM -> {
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.setCancelable(false)
+        dialog.show()
+    }
+
+    enum class ErrorType {
+        PALM_IMAGE,
+        REGISTRATION_FORM
     }
 }

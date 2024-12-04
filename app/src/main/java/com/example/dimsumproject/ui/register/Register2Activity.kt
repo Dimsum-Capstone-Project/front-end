@@ -48,6 +48,11 @@ class Register2Activity : AppCompatActivity() {
 
         utils = Utils(applicationContext)
 
+        intent.getStringExtra("palmImageUri")?.let { uriString ->
+            currentImageUri = Uri.parse(uriString)
+            showImage()
+        }
+
         binding.cardUploadImage.setOnClickListener {
             showImageUploadOptions()
         }
@@ -118,6 +123,7 @@ class Register2Activity : AppCompatActivity() {
         intent.putExtra("email", getIntent().getStringExtra("email"))
         intent.putExtra("password", getIntent().getStringExtra("password"))
         intent.putExtra("palmImageUri", currentImageUri.toString())
+
         startActivity(intent)
     }
 

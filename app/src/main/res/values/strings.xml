@@ -13,7 +13,6 @@
     </string>
     <string name="uploadimage">Upload Image</string>
     <string name="title_register3">Your personal information</string>
-    <string name="fullname">Full name</string>
     <string name="job">Job Position/Title</string>
     <string name="company">Company</string>
     <string name="instagram">Instagram</string>
@@ -35,8 +34,10 @@
     <string name="title_registrationError">Oh no!</string>
     <string name="try_again">Try Again</string>
     <string name="title_registrationSuccess">You did it!</string>
-    <string name="text_registrationSuccess">Now log in to your account</string>
-    <string name="login">Log in</string>
+    <string name="text_registrationSuccess">Start scanning palms now and unlock identity insights.</string>
+    <string name="text_buttonSuccess">Go to home</string>
     <string name="bio">Bio</string>
+    <string name="add_your_contacts">Add your contacts</string>
+    <string name="add_contact">Add Contact</string>
 
 </resources>

@@ -32,14 +32,38 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<ProfileResponse>
 
+    // Edit profile endpoint
+    @Multipart
+    @POST("/api/v1/profile/edit")
+    fun editProfile(
+        @Part("username") username: RequestBody,
+        @Part("bio") bio: RequestBody,
+        @Part("job_title") jobTitle: RequestBody,
+        @Part("company") company: RequestBody,
+        @Part profilePicture: MultipartBody.Part,
+        @Header("Authorization") token: String
+    ): Call<ProfileResponse>
+
     // Contact info endpoint with authorization
     @GET("/api/v1/contact_info")
     fun getContactInfo(
         @Header("Authorization") token: String
     ): Call<ContactResponse>
 
+    @POST("/api/v1/contact_info/add")
+    fun addContactInfo(
+        @Body contactInfo: ContactInfoRequest,
+        @Header("Authorization") token: String
+    ): Call<ContactResponse>
+
     data class LoginRequest(
         val email: String,
         val password: String
+    )
+
+    data class ContactInfoRequest(
+        val contact_type: String,
+        val contact_value: String,
+        val notes: String
     )
 }

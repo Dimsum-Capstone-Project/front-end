@@ -42,13 +42,13 @@
             android:textSize="16sp" />
 
         <Button
-            android:id="@+id/btnLogin"
+            android:id="@+id/btnNavigateHome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:backgroundTint="#FFCA42"
             android:fontFamily="@font/sora"
-            android:text="@string/login"
+            android:text="@string/text_buttonSuccess"
             android:textColor="#10405A" />
 
     </LinearLayout>

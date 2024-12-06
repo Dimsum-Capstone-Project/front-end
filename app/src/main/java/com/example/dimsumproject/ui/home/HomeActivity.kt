@@ -15,7 +15,8 @@ import com.example.dimsumproject.databinding.ActivityHomeBinding
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private val viewModel: ProfileViewModel by viewModels()
-
+    private lateinit var contactsAdapter: ContactsAdapter
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -28,6 +29,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
+        contactsAdapter = ContactsAdapter(emptyList())
         binding.rvContacts.apply {
             layoutManager = GridLayoutManager(this@HomeActivity, 2)
         }

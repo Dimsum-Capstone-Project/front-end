@@ -36,7 +36,8 @@
                 android:layout_height="120dp"
                 android:background="@drawable/half_circle_cut"
                 android:backgroundTint="@color/light_gray"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="w,1:1" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -119,8 +120,11 @@
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/yellow"
+        android:backgroundTint="@color/black"
+        android:background="@drawable/half_circle_cut"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="w,1:1"
+
         app:menu="@menu/bottom_nav_menu" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Patterns
 import android.view.View
+import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dimsumproject.data.api.ApiConfig
@@ -29,6 +30,12 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         apiService = ApiConfig.getApiService()
+
+        // Check if user is already logged in
+        if (checkAccessToken()) {
+            navigateToHome()
+            return
+        }
 
         setupActions()
     }
@@ -53,6 +60,8 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Show loading before making API call
+            showLoading()
             loginUser(email, password)
         }
     }
@@ -62,6 +71,7 @@ class LoginActivity : AppCompatActivity() {
 
         apiService.loginUser(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                hideLoading()
                 if (response.isSuccessful) {
                     val loginResponse = response.body()
                     loginResponse?.let {
@@ -69,9 +79,7 @@ class LoginActivity : AppCompatActivity() {
                         saveAccessToken(it.access_token)
 
                         // Navigasi ke HomeActivity
-                        val intent = Intent(this@LoginActivity, HomeActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        navigateToHome()
                     }
                 } else {
                     showNotification("Incorrect email or password")
@@ -79,9 +87,23 @@ class LoginActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                hideLoading()
                 showNotification("Login failed. Please try again.")
             }
         })
+    }
+
+    private fun showLoading() {
+        binding.loadingCard.visibility = View.VISIBLE
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        )
+    }
+
+    private fun hideLoading() {
+        binding.loadingCard.visibility = View.GONE
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
     }
 
     private fun saveAccessToken(accessToken: String) {
@@ -89,6 +111,21 @@ class LoginActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putString("access_token", accessToken)
         editor.apply()
+    }
+
+    private fun checkAccessToken(): Boolean {
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+        val token = sharedPreferences.getString("access_token", null)
+        return !token.isNullOrEmpty()
+    }
+
+    private fun navigateToHome() {
+        val intent = Intent(this, HomeActivity::class.java).apply {
+            // Tambahkan flags agar user tidak bisa kembali ke LoginActivity
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun isValidEmail(email: String): Boolean {

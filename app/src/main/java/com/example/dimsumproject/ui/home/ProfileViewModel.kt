@@ -38,6 +38,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadProfile() {
+        if (_isLoading.value == true) return // Prevent multiple simultaneous loads
+
         _isLoading.value = true
         val client = ApiConfig.getApiService()
 
@@ -45,37 +47,55 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             override fun onResponse(call: Call<ProfileResponse>, response: Response<ProfileResponse>) {
                 _isLoading.value = false
                 if (response.isSuccessful) {
-                    _profile.value = response.body()
-                } else if (response.code() == 403) {
-                    handleAuthError()
+                    response.body()?.let {
+                        _profile.value = it
+                    }
                 } else {
-                    _error.value = "Failed to load profile"
+                    handleErrorResponse(response)
                 }
             }
 
             override fun onFailure(call: Call<ProfileResponse>, t: Throwable) {
                 _isLoading.value = false
-                _error.value = t.message ?: "Unknown error occurred"
+                _error.value = "Network error: ${t.message}"
             }
         })
     }
 
     fun loadContacts() {
+        if (_isLoading.value == true) return // Prevent multiple simultaneous loads
+
         val client = ApiConfig.getApiService()
 
         client.getContactInfo(getAuthToken()).enqueue(object : Callback<ContactResponse> {
             override fun onResponse(call: Call<ContactResponse>, response: Response<ContactResponse>) {
+                _isLoading.value = false
                 if (response.isSuccessful) {
-                    _contacts.value = response.body()
-                } else if (response.code() == 403) {
-                    handleAuthError()
+                    response.body()?.let {
+                        _contacts.value = it
+                    }
+                } else {
+                    handleErrorResponse(response)
                 }
             }
 
             override fun onFailure(call: Call<ContactResponse>, t: Throwable) {
-                _error.value = t.message ?: "Unknown error occurred"
+                _isLoading.value = false
+                _error.value = "Network error: ${t.message}"
             }
         })
+    }
+
+    private fun handleErrorResponse(response: Response<*>) {
+        when (response.code()) {
+            401, 403 -> {
+                _error.value = response.code().toString()
+                handleAuthError()
+            }
+            else -> {
+                _error.value = "Error: ${response.code()} - ${response.message()}"
+            }
+        }
     }
 
     private fun handleAuthError() {

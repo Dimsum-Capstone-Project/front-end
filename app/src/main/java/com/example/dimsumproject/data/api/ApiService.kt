@@ -56,6 +56,13 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<ContactResponse>
 
+    @GET("api/v1/history")
+    fun getHistory(
+        @Header("Authorization") token: String
+    ): Call<HistoryResponse>
+
+
+
     data class LoginRequest(
         val email: String,
         val password: String

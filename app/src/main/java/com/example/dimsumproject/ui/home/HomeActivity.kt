@@ -14,6 +14,9 @@ import com.bumptech.glide.Glide
 import com.example.dimsumproject.MainActivity
 import com.example.dimsumproject.R
 import com.example.dimsumproject.databinding.ActivityHomeBinding
+import com.example.dimsumproject.ui.history_visit.HistoryVisitActivity
+import com.example.dimsumproject.ui.scan.ScanActivity
+import com.example.dimsumproject.ui.settings.SettingsActivity
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
@@ -46,6 +49,9 @@ class HomeActivity : AppCompatActivity() {
         setupRecyclerView()
         setupObservers()
         loadData()
+        setupNavigation()
+
+
     }
 
     private fun setupRecyclerView() {
@@ -107,6 +113,32 @@ class HomeActivity : AppCompatActivity() {
             if (shouldNavigate) {
                 clearAccessToken()
                 redirectToLogin()
+            }
+        }
+    }
+
+    private fun setupNavigation() {
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> true  // Tidak perlu melakukan apa-apa
+                R.id.navigation_history -> {
+                    startActivity(Intent(this, HistoryVisitActivity::class.java))
+                    false  // Kembalikan false agar item tidak terselect
+                }
+                R.id.navigation_scan -> {
+                    startActivity(Intent(this, ScanActivity::class.java))
+                    false
+                }
+                R.id.navigation_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    false
+                }
+                R.id.navigation_logout -> {
+                    clearAccessToken()
+                    redirectToLogin()
+                    false
+                }
+                else -> false
             }
         }
     }

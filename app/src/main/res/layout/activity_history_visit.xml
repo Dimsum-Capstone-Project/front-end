@@ -2,9 +2,107 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.history_visit.HistoryVisitActivity">
+    android:background="#FAF7F0">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tabIndicatorColor="@color/yellow"
+        app:tabSelectedTextColor="@color/teal_700"
+        app:tabTextColor="@color/light_gray" />
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/search_background"
+        android:queryHint="Search history..."
+        app:iconifiedByDefault="false"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintTop_toBottomOf="@id/searchView">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHistory"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="16dp" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Oops, nobody here :("
+        android:textColor="@color/teal_700"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/yellow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_icon_color"
+        app:itemTextColor="@color/bottom_nav_icon_color"
+        app:itemIconSize="24dp"
+        app:itemActiveIndicatorStyle="@style/App.Custom.Indicator"
+        app:labelVisibilityMode="labeled" />
+
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_scan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="-32dp"
+        android:backgroundTint="@color/yellow"
+        android:src="@drawable/ic_scan"
+        app:fabCustomSize="65dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:maxImageSize="30dp"
+        app:tint="@color/light_yellow" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/loadingCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="24dp"
+            android:indeterminateTint="#FFCA42" />
+
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

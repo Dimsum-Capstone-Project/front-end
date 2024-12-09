@@ -153,7 +153,7 @@ class HistoryVisitActivity : AppCompatActivity() {
     }
 
     private fun showHistoryDetail(item: HistoryItem) {
-        HistoryDetailDialog(this, item).show()
+        HistoryBottomSheet(this, item).show()
     }
 
     private fun loadData() {

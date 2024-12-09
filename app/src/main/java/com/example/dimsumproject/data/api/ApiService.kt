@@ -44,6 +44,16 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<ProfileResponse>
 
+    @Multipart
+    @POST("/api/v1/profile/edit")
+    fun editProfileWithoutImage(
+        @Part("username") username: RequestBody,
+        @Part("bio") bio: RequestBody,
+        @Part("job_title") jobTitle: RequestBody,
+        @Part("company") company: RequestBody,
+        @Header("Authorization") token: String
+    ): Call<ProfileResponse>
+
     // Contact info endpoint with authorization
     @GET("/api/v1/contact_info")
     fun getContactInfo(

@@ -2,6 +2,7 @@ package com.example.dimsumproject.ui.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -55,10 +56,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        contactsAdapter = ContactsAdapter(emptyList())
         binding.rvContacts.apply {
             layoutManager = GridLayoutManager(this@HomeActivity, 2)
-            adapter = contactsAdapter
+            adapter = ContactsAdapter(emptyList()) // Set adapter kosong dulu
+            Log.d("HomeActivity", "RecyclerView setup completed")
         }
     }
 
@@ -70,15 +71,17 @@ class HomeActivity : AppCompatActivity() {
 
         // Profile Observer
         viewModel.profile.observe(this) { profile ->
-            // Load background image
+            // Load background image (tetap sama)
             Glide.with(this)
                 .load("https://cdn.idntimes.com/content-images/community/2024/06/img-20240605-192130-2b64a83f842f8dac9ad37a9c9fa77858_600x400.jpg")
                 .centerCrop()
                 .into(binding.ivBackground)
 
-            // Load profile picture with white border
+            // Load profile picture dari URL baru
+            val profileImageUrl = "https://storage.googleapis.com/dimsum_palm_public/${profile.profile_picture}"
+
             Glide.with(this)
-                .load(profile.profile_picture ?: "")
+                .load(profileImageUrl)
                 .placeholder(R.drawable.ic_profile_placeholder)
                 .error(R.drawable.ic_profile_placeholder)
                 .circleCrop()
@@ -114,6 +117,16 @@ class HomeActivity : AppCompatActivity() {
                 clearAccessToken()
                 redirectToLogin()
             }
+        }
+
+        viewModel.contacts.observe(this) { contactResponse ->
+            Log.d("HomeActivity", "Received ${contactResponse.contacts.size} contacts")
+            binding.rvContacts.adapter = ContactsAdapter(contactResponse.contacts)
+        }
+
+        viewModel.error.observe(this) { error ->
+            Log.e("HomeActivity", "Error: $error")
+            Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -157,9 +170,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun loadData() {
-        viewModel.loadProfile()
-        viewModel.loadContacts()
+        Log.d("HomeActivity", "Starting to load data...")
+        viewModel.loadProfile() // loadContacts akan dipanggil otomatis setelah profile berhasil
     }
+
 
     private fun checkAccessToken(): Boolean {
         val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)

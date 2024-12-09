@@ -45,7 +45,7 @@ interface ApiService {
     ): Call<ProfileResponse>
 
     // Contact info endpoint with authorization
-    @GET("/api/v1/contact_info")
+    @GET("/api/v1/contact_info") // pastikan path ini benar
     fun getContactInfo(
         @Header("Authorization") token: String
     ): Call<ContactResponse>
@@ -60,8 +60,6 @@ interface ApiService {
     fun getHistory(
         @Header("Authorization") token: String
     ): Call<HistoryResponse>
-
-
 
     data class LoginRequest(
         val email: String,

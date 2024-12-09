@@ -2,6 +2,7 @@ package com.example.dimsumproject.ui.home
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -38,8 +39,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadProfile() {
-        if (_isLoading.value == true) return // Prevent multiple simultaneous loads
-
         _isLoading.value = true
         val client = ApiConfig.getApiService()
 
@@ -48,7 +47,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 _isLoading.value = false
                 if (response.isSuccessful) {
                     response.body()?.let {
+                        Log.d("ProfileViewModel", "Profile loaded successfully")
                         _profile.value = it
+                        // Panggil loadContacts setelah profile berhasil
+                        loadContacts()
                     }
                 } else {
                     handleErrorResponse(response)
@@ -63,24 +65,25 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadContacts() {
-        if (_isLoading.value == true) return // Prevent multiple simultaneous loads
-
+        Log.d("ProfileViewModel", "Starting to load contacts...")
         val client = ApiConfig.getApiService()
 
         client.getContactInfo(getAuthToken()).enqueue(object : Callback<ContactResponse> {
             override fun onResponse(call: Call<ContactResponse>, response: Response<ContactResponse>) {
-                _isLoading.value = false
                 if (response.isSuccessful) {
                     response.body()?.let {
+                        Log.d("ProfileViewModel", "Contacts loaded: ${it.contacts.size}")
                         _contacts.value = it
                     }
                 } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("ProfileViewModel", "Contact error: $errorBody")
                     handleErrorResponse(response)
                 }
             }
 
             override fun onFailure(call: Call<ContactResponse>, t: Throwable) {
-                _isLoading.value = false
+                Log.e("ProfileViewModel", "Contact request failed", t)
                 _error.value = "Network error: ${t.message}"
             }
         })

@@ -1,4 +1,3 @@
-// HistoryResponse.kt
 package com.example.dimsumproject.data.api
 
 data class HistoryResponse(

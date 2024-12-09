@@ -39,7 +39,17 @@ class ContactsAdapter(private var contacts: List<Contact>) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(contact: Contact) {
+
             val (iconResId, contactTypeName) = getContactTypeInfo(contact.contact_type)
+
+            val iconResId = when(contact.contact_type) {
+                "IG" -> R.drawable.instagram
+                "WA" -> R.drawable.whatsapp
+                "FB" -> R.drawable.facebook
+                "X" -> R.drawable.twitter
+                "LI" -> R.drawable.linkedin
+                else -> R.drawable.ic_contact
+            }
 
             with(binding) {
                 ivContactIcon.setImageResource(iconResId)

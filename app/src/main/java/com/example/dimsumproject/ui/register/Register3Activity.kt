@@ -26,9 +26,9 @@ import com.example.dimsumproject.data.api.ApiConfig
 import com.example.dimsumproject.data.api.ApiService
 import com.example.dimsumproject.data.api.ContactResponse
 import com.example.dimsumproject.data.api.ProfileResponse
-import com.example.dimsumproject.ui.home.HomeActivity
 import com.example.dimsumproject.databinding.ActivityRegister3Binding
 import com.example.dimsumproject.databinding.DialogRegistrationSuccessBinding
+import com.example.dimsumproject.ui.login.LoginActivity
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -301,13 +301,13 @@ class Register3Activity : AppCompatActivity() {
             setGravity(Gravity.CENTER)
         }
 
-        dialogBinding.btnNavigateHome.setOnClickListener {
+        dialogBinding.btnNavigateLogin.setOnClickListener {
             getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
                 .edit()
                 .putString("user_token", token)
                 .apply()
 
-            val intent = Intent(this, HomeActivity::class.java).apply {
+            val intent = Intent(this, LoginActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             startActivity(intent)

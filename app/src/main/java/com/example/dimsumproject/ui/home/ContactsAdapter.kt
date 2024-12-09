@@ -29,14 +29,13 @@ class ContactsAdapter(private val contacts: List<Contact>) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(contact: Contact) {
-            // Set icon berdasarkan contact type
             val iconResId = when(contact.contact_type) {
                 "IG" -> R.drawable.instagram
                 "WA" -> R.drawable.whatsapp
                 "FB" -> R.drawable.facebook
                 "X" -> R.drawable.twitter
                 "LI" -> R.drawable.linkedin
-                else -> R.drawable.ic_contact // default icon
+                else -> R.drawable.ic_contact
             }
 
             // Set nama lengkap social media

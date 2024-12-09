@@ -45,7 +45,7 @@ interface ApiService {
     ): Call<ProfileResponse>
 
     // Contact info endpoint with authorization
-    @GET("/api/v1/contact_info") // pastikan path ini benar
+    @GET("/api/v1/contact_info")
     fun getContactInfo(
         @Header("Authorization") token: String
     ): Call<ContactResponse>
@@ -56,10 +56,18 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Call<ContactResponse>
 
-    @GET("api/v1/history")
+    @Multipart
+    @POST("/api/v1/recognize_palm")
+    fun recognizePalm(
+        @Part palm_image: MultipartBody.Part,
+        @Header("Authorization") token: String
+    ): Call<RecognizePalmResponse>
+
+    @GET("/api/v1/history")
     fun getHistory(
         @Header("Authorization") token: String
     ): Call<HistoryResponse>
+
 
     data class LoginRequest(
         val email: String,
@@ -71,4 +79,10 @@ interface ApiService {
         val contact_value: String,
         val notes: String
     )
+
+    data class UserInfo(
+        val email: String,
+        val username: String
+    )
+
 }

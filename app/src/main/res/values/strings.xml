@@ -35,7 +35,7 @@
     <string name="try_again">Try Again</string>
     <string name="title_registrationSuccess">You did it!</string>
     <string name="text_registrationSuccess">Start scanning palms now and unlock identity insights.</string>
-    <string name="text_buttonSuccess">Go to home</string>
+    <string name="text_buttonSuccess">Log in</string>
     <string name="bio">Bio</string>
     <string name="add_your_contacts">Add your contacts</string>
     <string name="add_contact">Add Contact</string>

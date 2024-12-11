@@ -1,18 +1,28 @@
 package com.example.dimsumproject.ui.history_visit
 
+import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.dimsumproject.MainActivity
 import com.example.dimsumproject.R
+import com.example.dimsumproject.Utils
 import com.example.dimsumproject.data.api.HistoryItem
 import com.example.dimsumproject.databinding.ActivityHistoryVisitBinding
 import com.example.dimsumproject.ui.scan.ScanActivity
 import com.example.dimsumproject.ui.settings.SettingsActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 
 class HistoryVisitActivity : AppCompatActivity() {
@@ -20,12 +30,32 @@ class HistoryVisitActivity : AppCompatActivity() {
     private val viewModel: HistoryViewModel by viewModels()
     private lateinit var historyAdapter: HistoryAdapter
     private var isWhoScannedMe = true
+    private lateinit var utils: Utils
+    private var currentImageUri: Uri? = null
+    private var isScanningMode = false
+
+    private val launcherIntentCamera = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { isSuccess ->
+        if (isSuccess) {
+            navigateToScanWithUri(currentImageUri)
+        }
+    }
+
+    private val launcherIntentGallery = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            navigateToScanWithUri(it)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHistoryVisitBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        utils = Utils(applicationContext)
         setupViews()
         setupObservers()
         loadData()
@@ -50,21 +80,17 @@ class HistoryVisitActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_scan -> {
-                    startActivity(Intent(this, ScanActivity::class.java))
-                    true
+                    showImageSourceDialog()
+                    false
                 }
                 R.id.navigation_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
+                    finish()
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                     true
                 }
                 R.id.navigation_logout -> {
-                    // Handle logout
-                    val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-                    sharedPreferences.edit().clear().apply()
-
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
+                    showLogoutConfirmation()
                     true
                 }
                 else -> false
@@ -73,6 +99,73 @@ class HistoryVisitActivity : AppCompatActivity() {
 
         // Set history sebagai item yang aktif
         binding.bottomNav.selectedItemId = R.id.navigation_history
+
+        // Setup FAB Scan
+        binding.fabScan.setOnClickListener {
+            showImageSourceDialog()
+        }
+    }
+
+    private fun showLogoutConfirmation() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Yes") { _, _ ->
+                performLogout()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun performLogout() {
+        val sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun showImageSourceDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Select Palm Image Source")
+            .setItems(arrayOf("Take Photo", "Choose from Gallery")) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndStart()
+                    1 -> launcherIntentGallery.launch("image/*")
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermissionAndStart() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_REQUEST_CODE
+            )
+        } else {
+            startCamera()
+        }
+    }
+
+    private fun startCamera() {
+        currentImageUri = utils.getImageUri()
+        launcherIntentCamera.launch(currentImageUri!!)
+    }
+
+    private fun navigateToScanWithUri(uri: Uri?) {
+        uri?.let {
+            val intent = Intent(this, ScanActivity::class.java)
+            intent.putExtra("image_uri", it.toString())
+            startActivity(intent)
+        }
     }
 
     private fun setupViews() {
@@ -123,18 +216,22 @@ class HistoryVisitActivity : AppCompatActivity() {
         }
 
         viewModel.error.observe(this) { error ->
-            // Handle error
+            Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
         }
 
         viewModel.navigateToLogin.observe(this) { shouldNavigate ->
             if (shouldNavigate) {
-                val intent = Intent(this, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                finish()
+                navigateToLogin()
             }
         }
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun updateHistoryList() {
@@ -160,4 +257,31 @@ class HistoryVisitActivity : AppCompatActivity() {
         viewModel.loadHistory()
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera()
+            } else {
+                Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    companion object {
+        private const val CAMERA_PERMISSION_REQUEST_CODE = 1001
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            binding.rvHistory.adapter = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 }

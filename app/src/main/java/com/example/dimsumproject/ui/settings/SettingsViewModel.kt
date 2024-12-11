@@ -2,6 +2,7 @@ package com.example.dimsumproject.ui.settings
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -27,6 +28,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val _error = MutableLiveData<ProfileUpdateError>()
     val error: LiveData<ProfileUpdateError> = _error
+
+    private val _updateSuccess = MutableLiveData<Boolean>()
+    val updateSuccess: LiveData<Boolean> = _updateSuccess
 
     private val _loadingTimeout = MutableLiveData<Boolean>()
     val loadingTimeout: LiveData<Boolean> = _loadingTimeout
@@ -59,10 +63,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 cancelLoadingTimeout()
 
                 if (response.isSuccessful) {
+                    Log.d("SettingsViewModel", "Response successful: ${response.body()}")
                     response.body()?.let {
                         _profile.value = it
                     }
                 } else {
+                    Log.e("SettingsViewModel", "Response not successful: ${response.code()}")
+
                     when (response.code()) {
                         401, 403 -> handleAuthError()
                         else -> _error.value = ProfileUpdateError.ServerError
@@ -171,6 +178,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         if (response.isSuccessful) {
             response.body()?.let {
                 _profile.value = it
+                _updateSuccess.value = true  // Tambahkan ini
             }
         } else {
             when (response.code()) {

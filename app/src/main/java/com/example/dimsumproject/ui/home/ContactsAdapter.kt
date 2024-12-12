@@ -4,48 +4,37 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dimsumproject.R
 import com.example.dimsumproject.data.api.Contact
-import com.example.dimsumproject.databinding.ItemContactBinding
-import com.example.dimsumproject.databinding.ItemContactGridBinding
+import com.example.dimsumproject.databinding.ItemContactGridEditableBinding
 
-class ContactsAdapter(private var contacts: List<Contact>) :
-    RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
+class ContactsAdapter(
+    private var contacts: List<Contact>,
+    private val onEditClick: ((Contact) -> Unit)? = null,
+    private val onDeleteClick: ((Contact) -> Unit)? = null
+) : RecyclerView.Adapter<ContactsAdapter.ViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
-        val binding = ItemContactGridBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ContactViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        holder.bind(contacts[position])
-    }
-
-    override fun getItemCount() = contacts.size
-
-    fun updateContacts(newContacts: List<Contact>) {
-        contacts = newContacts
-        notifyDataSetChanged()
-    }
-
-    class ContactViewHolder(private val binding: ItemContactGridBinding) :
+    inner class ViewHolder(private val binding: ItemContactGridEditableBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(contact: Contact) {
-            val (iconResId, contactTypeName) = getContactTypeInfo(contact.contact_type)
-
-            with(binding) {
+            binding.apply {
+                val (iconResId, contactTypeName) = getContactTypeInfo(contact.contact_type)
                 ivContactIcon.setImageResource(iconResId)
                 tvContactType.text = contactTypeName
 
-                // Set click listener untuk setiap item
+                // Show/hide edit & delete buttons based on callback presence
+                btnEdit.visibility = if (onEditClick != null) View.VISIBLE else View.GONE
+                btnDelete.visibility = if (onDeleteClick != null) View.VISIBLE else View.GONE
+
+                btnEdit.setOnClickListener { onEditClick?.invoke(contact) }
+                btnDelete.setOnClickListener { onDeleteClick?.invoke(contact) }
+
+                // Handle click on the entire item
                 root.setOnClickListener {
                     handleContactClick(contact, root.context)
                 }
@@ -63,42 +52,23 @@ class ContactsAdapter(private var contacts: List<Contact>) :
                     "IG" -> {
                         val username = contact.contact_value.replace("@", "")
                         val url = when {
-                            contact.contact_value.startsWith("http") -> {
-                                // Jika sudah memiliki format lengkap
-                                contact.contact_value
-                            }
-                            contact.contact_value.startsWith("instagram.com/") -> {
-                                // Jika hanya memiliki domain tanpa protokol
+                            contact.contact_value.startsWith("http") -> contact.contact_value
+                            contact.contact_value.startsWith("instagram.com/") ->
                                 "https://${contact.contact_value}"
-                            }
-                            else -> {
-                                // Jika hanya memiliki username
-                                "http://instagram.com/${username}"
-                            }
+                            else -> "http://instagram.com/${username}"
                         }
                         launchUrl(context, url)
                     }
                     "LI" -> {
                         val url = when {
-                            contact.contact_value.startsWith("http") -> {
-                                // Jika sudah memiliki format lengkap
-                                contact.contact_value
-                            }
-                            contact.contact_value.startsWith("linkedin.com/") -> {
-                                // Jika hanya memiliki domain tanpa protokol
+                            contact.contact_value.startsWith("http") -> contact.contact_value
+                            contact.contact_value.startsWith("linkedin.com/") ->
                                 "https://${contact.contact_value}"
-                            }
-                            else -> {
-                                // Jika hanya memiliki username
-                                "https://www.linkedin.com/in/${contact.contact_value}"
-                            }
+                            else -> "https://www.linkedin.com/in/${contact.contact_value}"
                         }
                         launchUrl(context, url)
                     }
-                    "FB" -> {
-                        val url = contact.contact_value
-                        launchUrl(context, url)
-                    }
+                    "FB" -> launchUrl(context, contact.contact_value)
                     "EMAIL" -> {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:${contact.contact_value}")
@@ -121,8 +91,30 @@ class ContactsAdapter(private var contacts: List<Contact>) :
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             context.startActivity(intent)
         }
+    }
 
-        private fun getContactTypeInfo(contactType: String): Pair<Int, String> {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val binding = ItemContactGridEditableBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return ViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(contacts[position])
+    }
+
+    override fun getItemCount() = contacts.size
+
+    fun updateContacts(newContacts: List<Contact>) {
+        contacts = newContacts
+        notifyDataSetChanged()
+    }
+
+    companion object {
+        fun getContactTypeInfo(contactType: String): Pair<Int, String> {
             return when(contactType.uppercase()) {
                 "IG" -> R.drawable.instagram to "Instagram"
                 "WA" -> R.drawable.whatsapp to "WhatsApp"

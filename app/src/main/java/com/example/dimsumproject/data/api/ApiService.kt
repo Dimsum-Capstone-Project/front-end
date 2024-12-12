@@ -5,9 +5,11 @@ import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 
 interface ApiService {
@@ -77,6 +79,24 @@ interface ApiService {
     fun getHistory(
         @Header("Authorization") token: String
     ): Call<HistoryResponse>
+
+    @POST("api/v1/contact_info/add")
+    fun addContactInfoHome(
+        @Body request: AddContactRequest,
+        @Header("Authorization") token: String
+    ): Call<ContactResponse>
+
+    @PUT("api/v1/contact_info/edit")
+    fun editContactInfo(
+        @Body request: EditContactRequest,
+        @Header("Authorization") token: String
+    ): Call<EditContactResponse>
+
+    @HTTP(method = "DELETE", path = "api/v1/contact_info/delete", hasBody = true)
+    fun deleteContactInfo(
+        @Body request: DeleteContactRequest,
+        @Header("Authorization") token: String
+    ): Call<DeleteContactResponse>
 
 
     data class LoginRequest(
